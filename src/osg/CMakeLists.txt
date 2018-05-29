@@ -132,6 +132,7 @@ SET(TARGET_H
     ${HEADER_PATH}/PatchParameter
     ${HEADER_PATH}/PagedLOD
     ${HEADER_PATH}/Plane
+    ${HEADER_PATH}/Planode
     ${HEADER_PATH}/Point
     ${HEADER_PATH}/PointSprite
     ${HEADER_PATH}/PolygonMode
@@ -345,6 +346,7 @@ SET(TARGET_SRC
     OperationThread.cpp
     PatchParameter.cpp
     PagedLOD.cpp
+    Planode.cpp
     Point.cpp
     PointSprite.cpp
     PolygonMode.cpp
