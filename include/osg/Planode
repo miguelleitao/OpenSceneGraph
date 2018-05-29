@@ -1,0 +1,77 @@
+/* -*-c++-*- OpenSceneGraph - Copyright (C) 2017 Miguel Leitao
+ *
+ * This library is open source and may be redistributed and/or modified under
+ * the terms of the OpenSceneGraph Public License (OSGPL) version 0.0 or
+ * (at your option) any later version.  The full license is in LICENSE file
+ * included with this distribution, and on the openscenegraph.org website.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * OpenSceneGraph Public License for more details.
+*/
+
+#ifndef OSG_INFINITE_PLANE
+#define OSG_INFINITE_PLANE 1
+
+#include <osg/Matrix>
+#include <osg/Geode>
+#include <osg/Plane>
+
+namespace osg {
+
+/** Billboard is a derived form of Geode that orients its osg::Drawable
+  * children to face the eye point. Typical uses include trees and
+  * particle explosions.
+*/
+class OSG_EXPORT Planode : public Geode, Plane
+{
+    private:
+        /** Add a Drawable.
+          * Call the base-class Geode::addDrawble() to add the given Drawable
+          * gset as a child. If Geode::addDrawable() returns true, return true.
+          * Otherwise, return false. 
+	  * Planode::addDrawable is private. It is used only from constructor.*/
+        virtual bool addDrawable( Drawable *gset );
+
+        /** Remove a Drawable and its associated position.
+          * If gset is a child, remove it, decrement its reference count
+          * and return true.
+          * Otherwise, return false. 
+	  * Planode::removeDrawable is private. It is used only from destructor.*/
+        virtual bool removeDrawable( );
+    public:
+
+        Planode();
+	Planode(Plane pl) : Plane(pl) {};
+	
+
+        /** Copy constructor using CopyOp to manage deep vs shallow copy. */
+        Planode(const Planode&,const CopyOp& copyop=CopyOp::SHALLOW_COPY);
+
+        //META_Node(osg, Planode);
+
+        virtual osg::Object* cloneType() const { return new Planode (); } \
+        
+        virtual bool isSameKindAs(const osg::Object* obj) const { return dynamic_cast<const Planode *>(obj)!=NULL; } \
+        virtual const char* className() const { return "Planode"; } \
+        virtual const char* libraryName() const { return "osg"; } \
+        virtual void accept(osg::NodeVisitor& nv) { if (nv.validNodeMask(*this)) { nv.pushOntoNodePath(this); nv.apply(*this); nv.popFromNodePath(); } }
+
+
+//virtual osg::Object* clone(const osg::CopyOp& copyop) const { return new Planode (*this,copyop); } 
+
+	void traverse(NodeVisitor& nv);
+
+        bool computeMatrix(Matrix& modelview, const Vec3& eye_local, const Vec3& pos_local) const;
+
+        virtual BoundingSphere computeBound() const;
+
+    protected:
+        virtual ~Planode();
+
+};
+
+}
+
+#endif
