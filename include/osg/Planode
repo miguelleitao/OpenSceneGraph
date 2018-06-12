@@ -20,13 +20,14 @@
 
 namespace osg {
 
-/** Billboard is a derived form of Geode that orients its osg::Drawable
-  * children to face the eye point. Typical uses include trees and
-  * particle explosions.
+/** Planode is an infinite Plane. It is clipped to the viewport in run time.
+  * Typical use is the ground floor.
 */
 class OSG_EXPORT Planode : public Geode, Plane
 {
     private:
+        osg::ref_ptr<osg::Vec3Array> planodeVerts = NULL;
+
         /** Add a Drawable.
           * Call the base-class Geode::addDrawble() to add the given Drawable
           * gset as a child. If Geode::addDrawable() returns true, return true.

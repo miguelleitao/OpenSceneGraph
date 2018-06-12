@@ -27,7 +27,8 @@ int main()
 	SceneRoot->addChild(myPlanode); 
 
 	// Creating the viewer
-	osgViewer::Viewer viewer ;
+	osgViewer::Viewer viewer;
+        viewer.setUpViewInWindow(400, 400, 640, 480);
 	viewer.setSceneData( SceneRoot );
 
 	// Setup camera
@@ -36,6 +37,18 @@ int main()
  	viewer.getCamera()->setViewMatrix(matrix);
 
         //viewer.setCameraManipulator(  new osgGA::TrackballManipulator() );
+	// Manipulator
+        osg::ref_ptr<osgGA::TrackballManipulator> manipulator = new osgGA::TrackballManipulator;
+        viewer.setCameraManipulator( manipulator );
+        // Set the desired home coordinates for the manipulator
+        osg::Vec3d eye(osg::Vec3(-15., 0., 15.));
+        osg::Vec3d center(0., 0., 0.);
+        // Make sure that OSG is not overriding our home position
+        manipulator->setAutoComputeHomePosition(false);
+        // Set the desired home position of the Trackball Manipulator
+        manipulator->setHomePosition(eye, center, osg::Vec3(0.,0.,1.));
+        // Force the camera to move to the home position
+        manipulator->home(0.0);
 
 	// record the timer tick at the start of rendering.
 	osg::Timer myTimer;
