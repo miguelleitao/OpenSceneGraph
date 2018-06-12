@@ -28,7 +28,7 @@ Planode(Plane pl) : Plane(pl)
 
 }
 */
-Planode::Planode()
+Planode::Planode() : Plane(0.,0.,1.,0)
 {
 fprintf(stderr,"init planode\n");
 
@@ -132,17 +132,43 @@ void Planode::traverse(NodeVisitor& nv) {
 
    // _children[0]->accept(nv);
 
-    fprintf(stderr, "traversing Planode with %ld children, eye %f %f %f view %f %f %f\n",
+    fprintf(stderr, "traversing Planode with %ld children, eye %.2f %.2f %.2f view %.2f %.2f %.2f\n",
 		    _children.size(), eye[0],eye[1],eye[2], view[0],view[1],view[2]);
 
 //    for( int i=0 ; i<4 ; i++ ) 
 //	_children[1]
 
-fprintf(stderr,"Dists %f %f %f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceFromEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceToViewPoint(osg::Vec3(0,0,0),true));
+fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceFromEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceToViewPoint(osg::Vec3(0,0,0),true));
 
         float dist = nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true);
 
+	osgUtil::CullVisitor *cv = nv.asCullVisitor();
+	if ( cv ) {
+	    osg::Camera* cam = cv->getCurrentCamera();
+	    if (cam) {
+		fprintf(stderr," ######## obteve camaere\n");
+		osg::Vec3d c_eye, c_center, c_up;
+		cam->getViewMatrixAsLookAt (c_eye, c_center, c_up, 1.0);
+    		fprintf(stderr, "         camera with eye %.2f %.2f %.2f view %.2f %.2f %.2f\n",
+		    c_eye[0],c_eye[1],c_eye[2], c_center[0],c_center[1],c_center[2]);
+		// ok. 
+		// calc intersection point
+		osg::Vec3d vdir = c_center - c_eye;
+		fprintf(stderr, "          plano=%.2f %.2f %.2f, d=%f \n",_fv[0],_fv[1],_fv[2],_fv[3]);
+		fprintf(stderr, "          vdir=%.2f %.2f %.2f, len=%f \n",vdir[0],vdir[1],vdir[2],vdir.length());
+		double r = _fv[0]*vdir[0]+_fv[1]*vdir[1]+_fv[2]*vdir[2];
+		if ( abs(r)>0.00000001 ) {
+			double k = -(_fv[0]*c_eye[0]+_fv[1]*c_eye[1]+_fv[2]*c_eye[2]+_fv[3]) / r; 
+			osg::Vec3d iPoint = eye + vdir*k;
+			fprintf(stderr, "          k=%f, ipoint=%.2f %.2f %.2f \n",k, iPoint[0],iPoint[1],iPoint[2]);
 
+		}
+		osg::Matrixd c_proj = cam->getProjectionMatrix();
+		
+		//osg::Matrixd temp = proj * mv;
+		//osg::Matrixd inv = inverse(temp); // compute inverse of matrix
+	    }
+	}
 	//osg::Matrixd proj = nv.asCullVisitor()->getCurrentCamera()->getProjectionMatrix();
 /*
 	osg::Matrixd mv   = nv.getCurrentCamera()->getViewMatrix();
@@ -244,7 +270,7 @@ fprintf(stderr,"dist %d-%d = %f\n", i,j,dij);
     //bsphere._radius = 4*getDrawable(1)->getGLObjectSizeHint();
 
     fprintf(stderr,"    sphere radius %f\n", bsphere._radius);
-    //bsphere._radius = 20;
+    bsphere._radius = 20;
 
     return bsphere;
 }
