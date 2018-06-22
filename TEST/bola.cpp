@@ -8,6 +8,7 @@
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
 #include <osgGA/TrackballManipulator>
+#include <osg/PositionAttitudeTransform>
 #include <osg/Planode>
 
 
@@ -77,6 +78,11 @@ int main()
         osg::Node* loadedModel = osgDB::readNodeFile("bola.obj");	
     	//SceneRoot->addChild(loadedModel); 
 
+	osg::PositionAttitudeTransform * bpos = new osg::PositionAttitudeTransform();
+        bpos->setPosition(osg::Vec3d(0.,20.,0.));
+	bpos->addChild(loadedModel);
+        SceneRoot->addChild(bpos);
+
 	osg::Node* myPlanode = new osg::Planode();
 	SceneRoot->addChild(myPlanode); 
 
@@ -110,7 +116,7 @@ int main()
         viewer.setCameraManipulator( manipulator );
         // Set the desired home coordinates for the manipulator
         osg::Vec3d eye(osg::Vec3(-15., 0., 15.));
-        osg::Vec3d center(0., 0., 0.);
+        osg::Vec3d center(0., 0., 1.);
         // Make sure that OSG is not overriding our home position
         manipulator->setAutoComputeHomePosition(false);
         // Set the desired home position of the Trackball Manipulator

@@ -48,12 +48,12 @@ fprintf(stderr,"init planode\n");
 
     // Vertexes
     //osg::ref_ptr<osg::Vec3Array> 
+fprintf(stderr,"Vai alocar verts\n");
     planodeVerts = new osg::Vec3Array(4);
     (*planodeVerts)[0].set( osg::Vec3( 10.,  10., 0.) );
     (*planodeVerts)[1].set( osg::Vec3( 10., -10., 0.) );
     (*planodeVerts)[2].set( osg::Vec3(-10., -10., 0.) );
     (*planodeVerts)[3].set( osg::Vec3(-10.,  10., 0.) );
-fprintf(stderr,"Vai alocar verts\n");
     planodeQuad->setVertexArray(planodeVerts);
 fprintf(stderr,"alocou verts\n");
 
@@ -76,6 +76,7 @@ fprintf(stderr,"alocou verts\n");
     (*planodeNormal)[0].set( osg::Vec3(0., 0., 1.) );
     planodeQuad->setNormalArray ( planodeNormal );
     planodeQuad->setNormalBinding( osg::Geometry::BIND_OVERALL );
+    planodeQuad->setDataVariance(osg::Object::DYNAMIC);
 
     planodeQuad->addPrimitiveSet( new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4) );
 
@@ -123,22 +124,18 @@ bool Planode::removeDrawable( )
 void Planode::traverse(NodeVisitor& nv) {
     for( unsigned int i=0 ; i<_children.size() ; i++ ) 
 	_children[i]->accept(nv);
-
+  // _children[0]->accept(nv);
 
    //float eye_dist = nv.getDistanceToViewPoint(getCenter(),true);
     osg::Vec3 eye = nv.getEyePoint();
     osg::Vec3 view = nv.getViewPoint();
-    
-
-   // _children[0]->accept(nv);
 
     fprintf(stderr, "traversing Planode with %ld children, eye %.2f %.2f %.2f view %.2f %.2f %.2f\n",
 		    _children.size(), eye[0],eye[1],eye[2], view[0],view[1],view[2]);
 
-//    for( int i=0 ; i<4 ; i++ ) 
-//	_children[1]
-
+/*
 fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceFromEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceToViewPoint(osg::Vec3(0,0,0),true));
+*/
 
         float dist = nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true);
 
@@ -154,81 +151,48 @@ fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,
 		// ok. 
 		// calc intersection point
 		osg::Vec3d vdir = c_center - c_eye;
-		fprintf(stderr, "          plano=%.2f %.2f %.2f, d=%f \n",_fv[0],_fv[1],_fv[2],_fv[3]);
-		fprintf(stderr, "          vdir=%.2f %.2f %.2f, len=%f \n",vdir[0],vdir[1],vdir[2],vdir.length());
+		//fprintf(stderr, "          plano=%.2f %.2f %.2f, d=%f \n",_fv[0],_fv[1],_fv[2],_fv[3]);
+		//fprintf(stderr, "          vdir=%.2f %.2f %.2f, len=%f \n",vdir[0],vdir[1],vdir[2],vdir.length());
+		// dot product between  Normal and view vector
 		double r = _fv[0]*vdir[0]+_fv[1]*vdir[1]+_fv[2]*vdir[2];
 		if ( abs(r)>0.00000001 ) {
 			double k = -(_fv[0]*c_eye[0]+_fv[1]*c_eye[1]+_fv[2]*c_eye[2]+_fv[3]) / r; 
 			osg::Vec3d iPoint = eye + vdir*k;
 			fprintf(stderr, "          k=%f, ipoint=%.2f %.2f %.2f \n",k, iPoint[0],iPoint[1],iPoint[2]);
-
+			    (*planodeVerts)[0].set( iPoint + (osg::Vec3( 1,  1, 0.) *dist) );
+			    (*planodeVerts)[1].set( iPoint + (osg::Vec3( 1, -1, 0.) *dist) );
+			    (*planodeVerts)[2].set( iPoint + (osg::Vec3(-1, -1, 0.) *dist) );
+			    (*planodeVerts)[3].set( iPoint + (osg::Vec3(-1,  1, 0.) *dist) );
 		}
 		osg::Matrixd c_proj = cam->getProjectionMatrix();
-		
-		//osg::Matrixd temp = proj * mv;
-		//osg::Matrixd inv = inverse(temp); // compute inverse of matrix
 	    }
 	}
-	//osg::Matrixd proj = nv.asCullVisitor()->getCurrentCamera()->getProjectionMatrix();
-
-	//osg::Matrixd mv   = nv.getCurrentCamera()->getViewMatrix();
-/*
-	osg::Matrixd temp = proj * mv;
-	osg::Matrixd inv = inverse(temp); // compute inverse of matrix
-	 
-	VECTOR4 fr[8]= {
-		// near
-		{-1, -1, -1, 1}, { 1, -1, -1, 1}, { 1,  1, -1, 1},  {-1,  1, -1, 1},
-		// far
-		{-1, -1, 1, 1},	{ 1, -1, 1, 1},	{ 1,  1, 1, 1},  {-1,  1, 1, 1}
-	};
-
-	// Transform all vertices:
-	// multiply vertex array (fr) by matrix. result is transformed vertex array (tfr)
-	osg::Vec4 tfr[8];
-	//transform_points(fr, 8, inv, tfr); 
-	 
-	int i;
-	for (i=0; i<8; i++)
-	{
-	    tfr = inv * fr;
-	    tfr[i].x /= tfr[i].w;
-	    tfr[i].y /= tfr[i].w;
-	    tfr[i].z /= tfr[i].w;
-	    tfr[i].w = 1.0f;
-	}
-	(*planodeVerts)[0].set( tfr[4] );
-        (*planodeVerts)[1].set( tfr[5] );
-        (*planodeVerts)[2].set( tfr[6] );
-        (*planodeVerts)[3].set( tfr[7] ); */
- 
-/*
-glBegin(GL_LINES);
-connect tfr points as follow:
-0-1, 1-2, 2-3, 3-0, 
-4-5, 5-6, 6-7, 7-4,
-0-4, 1-5, 2-6, 3-7
-glEnd();
-
-*/
-
-    (*planodeVerts)[0].set( osg::Vec3( dist,  dist, 0.) );
-    (*planodeVerts)[1].set( osg::Vec3( dist, -dist, 0.) );
-    (*planodeVerts)[2].set( osg::Vec3(-dist, -dist, 0.) );
-    (*planodeVerts)[3].set( osg::Vec3(-dist,  dist, 0.) );
 
     planodeVerts->dirty();
+
+    for( unsigned int i=0 ; i<_children.size() ; i++ ) {
+	getDrawable(i)->dirtyDisplayList();
+	getDrawable(i)->dirtyBound();
+    }
+    
     dirtyBound();
+<<<<<<< HEAD
 computeBound();
 
 fprintf(stderr,"end\n");
+=======
+
+    //getParent(0)->dirtyBound();
+
+   //setCullingActive(false);
+>>>>>>> planode implementation and test
     
 }
 
 bool Planode::computeMatrix(Matrix& modelview, const Vec3& eye_local, const Vec3& pos_local) const
 {
     //Vec3 up_local(matrix(0,1),matrix(1,1),matrix(2,1));
-fprintf(stderr, "computing matrix Planode eye %f %f %f pos %f %f %f\n",eye_local[0],eye_local[1],eye_local[2], pos_local[0],pos_local[1],pos_local[2]);
+fprintf(stderr, "#### computing matrix Planode eye %f %f %f pos %f %f %f\n",eye_local[0],eye_local[1],eye_local[2], pos_local[0],pos_local[1],pos_local[2]);
 
     Matrix matrix;
 
@@ -248,32 +212,35 @@ BoundingSphere Planode::computeBound() const
 
     if( ngsets == 0 ) return BoundingSphere();
 
+    /*
+    fprintf(stderr,"    OLD sphere center %f %f %f radius %f\n", 
+	_boundingSphere._center[0], _boundingSphere._center[1], _boundingSphere._center[2], _boundingSphere._radius);
+    */
+
+    // Compute poligon center
     osg::Vec3 total = osg::Vec3(0,0,0);
     for( int i=0 ; i<4 ; i++ )
 	total += (*planodeVerts)[i];
-
+    fprintf(stderr,"    total  %f %f %f \n", total[0], total[1], total[2]);
 
     BoundingSphere bsphere;
-    //bsphere._center.set(0.0f,0.0f,0.0f);
     bsphere._center.set(total / 4.);
 
     //bsphere._center /= (float)(ngsets);
 
-    float maxDist = 0.f;
-    
-    for( int i=0   ; i<3 ; i++ )
-    for( int j=i+1 ; j<4 ; j++ ) {
-	osg::Vec3 ij = (*planodeVerts)[i]-(*planodeVerts)[j];
+    // Compute max distace from center to vertex
+    float maxDist = 0.f;    
+    for( int i=0   ; i<4 ; i++ ) {
+	osg::Vec3 ij = (*planodeVerts)[i]-bsphere._center;
 	float dij = ij.length2();
 	if ( dij>maxDist ) maxDist = dij;
-fprintf(stderr,"dist %d-%d = %f\n", i,j,dij);
+	//fprintf(stderr,"dist %d-center = %f\n", i,dij);
     }
     bsphere._radius = sqrt(maxDist);
 
     //bsphere._radius = 4*getDrawable(1)->getGLObjectSizeHint();
 
-    fprintf(stderr,"    sphere radius %f\n", bsphere._radius);
-    bsphere._radius = 20;
+    fprintf(stderr,"    sphere center %f %f %f radius %f\n", bsphere._center[0], bsphere._center[1], bsphere._center[2], bsphere._radius);
 
     return bsphere;
 }

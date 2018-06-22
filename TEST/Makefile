@@ -23,14 +23,8 @@ bullet_hello.o: bullet_hello.cpp
 bola_bullet.o: bola_bullet.cpp
 	g++ -Wall -O2 -c ${INC_BULLET} ${INC_OSG} $<
 
-get:
-	wget -q ${BASE_DIR}/bola.cpp
-	wget -q ${BASE_DIR}/bullet_hello.cpp
-	wget -q ${BASE_DIR}/bola.mtl
-	wget -q ${BASE_DIR}/bola.obj
-	wget -q ${BASE_DIR}/plano.mtl
-	wget -q ${BASE_DIR}/plano.obj
-	wget -q ${BASE_DIR}/beachball.png
+run: bola
+	LD_LIBRARY_PATH=../lib ./bola
 
 clean:
 	rm -f bullet_hello.o bola_bullet.o bola bola_bullet bullet_hello bola.o
