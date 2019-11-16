@@ -144,8 +144,9 @@ fprintf(stderr,"Dists %f %f %f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,0),tru
 
 
 	//osg::Matrixd proj = nv.asCullVisitor()->getCurrentCamera()->getProjectionMatrix();
+
+	//osg::Matrixd mv   = nv.getCurrentCamera()->getViewMatrix();
 /*
-	osg::Matrixd mv   = nv.getCurrentCamera()->getViewMatrix();
 	osg::Matrixd temp = proj * mv;
 	osg::Matrixd inv = inverse(temp); // compute inverse of matrix
 	 
@@ -193,6 +194,8 @@ glEnd();
     planodeVerts->dirty();
     dirtyBound();
 computeBound();
+
+fprintf(stderr,"end\n");
     
 }
 
@@ -244,7 +247,11 @@ fprintf(stderr,"dist %d-%d = %f\n", i,j,dij);
     //bsphere._radius = 4*getDrawable(1)->getGLObjectSizeHint();
 
     fprintf(stderr,"    sphere radius %f\n", bsphere._radius);
-    //bsphere._radius = 20;
+    bsphere._radius = 20;
 
     return bsphere;
 }
+
+
+
+
