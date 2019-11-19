@@ -194,9 +194,10 @@ namespace OpenThreads {
 
             int status = SetThreadPriority( pd->tid.get(), prio);
 
+#if !defined(WIN32_UWP)
             if(getenv("OUTPUT_THREADLIB_SCHEDULING_INFO") != 0)
                 PrintThreadSchedulingInfo(thread);
-
+#endif
             return status!=0;
         };
     };
@@ -420,12 +421,14 @@ int Thread::cancel()
         // cancelMode == 0 (deffered) -> wait a little then kill em
 
     //    if( (pd->cancelMode == 1) || (WaitForSingleObject(pd->tid,INFINITE)!=WAIT_OBJECT_0) )
+#if !defined(WIN32_UWP)
         if( pd->cancelMode == 1 )
         {
             // did not terminate cleanly force termination
             pd->isRunning = false;
             return TerminateThread(pd->tid.get(),(DWORD)-1);
         }
+#endif
     }
 
     return 0;
@@ -603,8 +606,11 @@ static int SetThreadAffinity(HANDLE tid, const Affinity& affinity)
 		//std::cout << "   Fallback setting affinityMask : 0x" << std::hex << affinityMask << std::dec << std::endl;
 	}
 
+#if !defined(WIN32_UWP)
 	DWORD_PTR res = SetThreadAffinityMask ( tid, affinityMask );
-
+#else
+	DWORD_PTR res = 1;
+#endif
 	// return value 1 means call is ignored ( 9x/ME/SE )
 	if (res == 1) return -1;
 	// return value 0 is failure
@@ -662,7 +668,7 @@ int Thread::YieldCurrentThread()
 
 int Thread::microSleep(unsigned int microsec)
 {
-#if _WIN32_WINNT < 0x0400 // simulate
+#if _WIN32_WINNT < 0x0400 || defined(WIN32_UWP) // simulate
     ::Sleep(microsec/1000);
     return 0;
 #else

@@ -140,6 +140,36 @@ fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,
         float dist = nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true);
 
 	osgUtil::CullVisitor *cv = nv.asCullVisitor();
+
+	//osg::Matrixd proj = nv.asCullVisitor()->getCurrentCamera()->getProjectionMatrix();
+
+	//osg::Matrixd mv   = nv.getCurrentCamera()->getViewMatrix();
+
+	osg::Matrixd temp = proj * mv;
+	osg::Matrixd inv = inverse(temp); // compute inverse of matrix
+	 
+	VECTOR4 fr[8]= {
+		// near
+		{-1, -1, -1, 1}, { 1, -1, -1, 1}, { 1,  1, -1, 1},  {-1,  1, -1, 1},
+		// far
+		{-1, -1, 1, 1},	{ 1, -1, 1, 1},	{ 1,  1, 1, 1},  {-1,  1, 1, 1}
+	};
+
+	// Transform all vertices:
+	// multiply vertex array (fr) by matrix. result is transformed vertex array (tfr)
+	osg::Vec4 tfr[8];
+	//transform_points(fr, 8, inv, tfr); 
+	 
+	int i;
+	for (i=0; i<8; i++)
+	{
+	    tfr = inv * fr;
+	    tfr[i].x /= tfr[i].w;
+	    tfr[i].y /= tfr[i].w;
+	    tfr[i].z /= tfr[i].w;
+	    tfr[i].w = 1.0f;
+}
+        osgUtil::CullVisitor *cv = nv.asCullVisitor();
 	if ( cv ) {
 	    osg::Camera* cam = cv->getCurrentCamera();
 	    if (cam) {
@@ -225,6 +255,10 @@ fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,
     }
     
     dirtyBound();
+computeBound();
+
+fprintf(stderr,"end\n");
+
 
     //getParent(0)->dirtyBound();
 
@@ -287,3 +321,7 @@ BoundingSphere Planode::computeBound() const
 
     return bsphere;
 }
+
+
+
+
