@@ -149,14 +149,63 @@ fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,
     		fprintf(stderr, "         camera with eye %.2f %.2f %.2f view %.2f %.2f %.2f\n",
 		    c_eye[0],c_eye[1],c_eye[2], c_center[0],c_center[1],c_center[2]);
 		// ok. 
-		// calc intersection point
+		double fovy, aRatio, zNear, zFar;
+		cam->getProjectionMatrixAsPerspective(fovy,aRatio,zNear,zFar);
+		double fovx = fovy*aRatio;
+		printf("          fovx %.4f fovy%.4f, aRatio %.4f, Near %.3f Far %.2f\n",
+				fovx, fovy, aRatio, zNear, zFar);
+		
+		// Viewing direction
 		osg::Vec3d vdir = c_center - c_eye;
+
+		// Screen side vector
+		osg::Vec3d c_side = vdir ^ c_up;
+
+		// 4 frustum edges 
+		osg::Matrixd rMat, lMat, tMat, bMat;
+		rMat.makeRotate( fovx/2., c_up);
+		lMat.makeRotate(-fovx/2., c_up);
+                tMat.makeRotate( fovy/2., c_side);
+                bMat.makeRotate(-fovy/2., c_side);
+
+		osg::Matrixd matVertex[4];
+		matVertex[0] = rMat * tMat;
+		matVertex[1] = rMat * bMat;
+                matVertex[2] = lMat * bMat;
+                matVertex[3] = lMat * tMat;
+
+		// 4 rays
+		osg::Vec3d frustRay[4];
+		double kk = dotProductNormal( c_eye );
+		for( int i=0 ; i<4 ;i++ ) {
+		    frustRay[i] = osg::Matrix::transform3x3( vdir, matVertex[i] );
+		    double rr = dotProductNormal( frustRay[i] );
+		    if ( abs(rr)>0.0000001 ) {
+			double iDist = kk/rr;
+			if ( iDist>zFar ) {
+			//	iDist = zFar;
+			}
+			else if ( iDist<zNear ) {
+			//	iDist = zNear;
+			}
+		        // calc intersection point
+		        osg::Vec3d iPoint = eye + frustRay[i]*iDist;
+		        fprintf(stderr, "          kk=%f, ipoint[%d]=%.2f %.2f %.2f \n",
+					kk,i,iPoint[0],iPoint[1],iPoint[2]);
+		        (*planodeVerts)[i].set( iPoint );
+		    }
+		}
+
+		// Old implementation
+		// ONE ray and 4 points in a rectangle
 		//fprintf(stderr, "          plano=%.2f %.2f %.2f, d=%f \n",_fv[0],_fv[1],_fv[2],_fv[3]);
 		//fprintf(stderr, "          vdir=%.2f %.2f %.2f, len=%f \n",vdir[0],vdir[1],vdir[2],vdir.length());
 		// dot product between  Normal and view vector
-		double r = _fv[0]*vdir[0]+_fv[1]*vdir[1]+_fv[2]*vdir[2];
+		double r = dotProductNormal( vdir );
+		//double r = _fv[0]*vdir[0]+_fv[1]*vdir[1]+_fv[2]*vdir[2];
 		if ( abs(r)>0.00000001 ) {
-			double k = -(_fv[0]*c_eye[0]+_fv[1]*c_eye[1]+_fv[2]*c_eye[2]+_fv[3]) / r; 
+			double k = dotProductNormal( c_eye );
+			//double k = -(_fv[0]*c_eye[0]+_fv[1]*c_eye[1]+_fv[2]*c_eye[2]+_fv[3]) / r; 
 			osg::Vec3d iPoint = eye + vdir*k;
 			fprintf(stderr, "          k=%f, ipoint=%.2f %.2f %.2f \n",k, iPoint[0],iPoint[1],iPoint[2]);
 			    (*planodeVerts)[0].set( iPoint + (osg::Vec3( 1,  1, 0.) *dist) );
