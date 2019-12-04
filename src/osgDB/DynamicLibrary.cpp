@@ -77,6 +77,8 @@ DynamicLibrary* DynamicLibrary::loadLibrary(const std::string& libraryName)
 
     HANDLE handle = NULL;
 
+    OSG_DEBUG << "DynamicLibrary::try to load library \"" << libraryName << "\"" << std::endl;
+    
     std::string fullLibraryName = osgDB::findLibraryFile(libraryName);
     if (!fullLibraryName.empty()) handle = getLibraryHandle( fullLibraryName ); // try the lib we have found
     else handle = getLibraryHandle( libraryName ); // haven't found a lib ourselves, see if the OS can find it simply from the library name.
@@ -94,12 +96,10 @@ DynamicLibrary::HANDLE DynamicLibrary::getLibraryHandle( const std::string& libr
     HANDLE handle = NULL;
 
 #if defined(WIN32) && !defined(__CYGWIN__)
-#if !defined(WIN32_UWP)
 #ifdef OSG_USE_UTF8_FILENAME
     handle = LoadLibraryW(  convertUTF8toUTF16(libraryName).c_str() );
 #else
     handle = LoadLibrary( libraryName.c_str() );
-#endif
 #endif
 #elif defined(__APPLE__) && defined(APPLE_PRE_10_3)
     NSObjectFileImage image;

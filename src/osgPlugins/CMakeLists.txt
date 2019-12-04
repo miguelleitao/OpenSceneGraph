@@ -32,7 +32,7 @@ SET(TARGET_COMMON_LIBRARIES
     osgUtil
 )
 
-OPTION(BUILD_OSG_PLUGINS_BY_DEFAULT "If set, all available plugins are built by default and each plugin can be disabled from the build by setting BUILD_OSG_PLUGIN_<PLUGINNAME> to 0. If not set, no plugins are built by default and each desired plugin must be explicitly enabled by setting BUILD_OSG_PLUGIN_<PLUGINNAME> to 1." ON) 
+OPTION(BUILD_OSG_PLUGINS_BY_DEFAULT "If set, all available plugins are built by default and each plugin can be disabled from the build by setting BUILD_OSG_PLUGIN_<PLUGINNAME> to 0. If not set, no plugins are built by default and each desired plugin must be explicitly enabled by setting BUILD_OSG_PLUGIN_<PLUGINNAME> to 1." ON)
 
 # Macro used for adding plugins below. By default, all plugins are built
 # but can be disabled by setting the CMake Variable BUILD_OSG_PLUGIN_<PLUGINNAME> to 0.
@@ -77,10 +77,8 @@ ADD_PLUGIN_DIRECTORY(ive)
 #
 #  Viewer plugins
 #
-IF(NOT OSG_BUILD_PLATFORM_UWP)
-    ADD_PLUGIN_DIRECTORY(cfg)
-ENDIF()
-	
+ADD_PLUGIN_DIRECTORY(cfg)
+
 ############################################################
 #
 #  Shader plugins
@@ -147,9 +145,7 @@ ENDIF()
 
 ADD_PLUGIN_DIRECTORY(3dc)
 
-IF(NOT OSG_BUILD_PLATFORM_UWP)
-    ADD_PLUGIN_DIRECTORY(p3d)
-ENDIF()
+ADD_PLUGIN_DIRECTORY(p3d)
 
 IF(CURL_FOUND)
     ADD_PLUGIN_DIRECTORY(curl)
@@ -163,10 +159,6 @@ IF(NOT OSG_GLES1_AVAILABLE AND NOT OSG_GLES2_AVAILABLE)
     IF(INVENTOR_FOUND)
         ADD_PLUGIN_DIRECTORY(Inventor)
     ENDIF()
-ENDIF()
-
-IF(OPENVRML_FOUND AND OSG_CPP_EXCEPTIONS_AVAILABLE)
-    ADD_PLUGIN_DIRECTORY(vrml)
 ENDIF()
 
 IF(COLLADA_FOUND AND OSG_CPP_EXCEPTIONS_AVAILABLE)
@@ -184,10 +176,7 @@ ENDIF()
 ADD_PLUGIN_DIRECTORY(bvh)
 ADD_PLUGIN_DIRECTORY(x)
 ADD_PLUGIN_DIRECTORY(dxf)
-
-IF(NOT OSG_BUILD_PLATFORM_UWP)
-    ADD_PLUGIN_DIRECTORY(OpenFlight)
-ENDIF()
+ADD_PLUGIN_DIRECTORY(OpenFlight)
 
 ADD_PLUGIN_DIRECTORY(obj)
 
@@ -202,11 +191,8 @@ ADD_PLUGIN_DIRECTORY(pov)
 ADD_PLUGIN_DIRECTORY(logo)
 ADD_PLUGIN_DIRECTORY(lws)
 ADD_PLUGIN_DIRECTORY(md2)
-
-IF (NOT OSG_BUILD_PLATFORM_UWP)
-    ADD_PLUGIN_DIRECTORY(osgtgz)
-	ADD_PLUGIN_DIRECTORY(tgz)
-ENDIF()
+ADD_PLUGIN_DIRECTORY(osgtgz)
+ADD_PLUGIN_DIRECTORY(tgz)
 
 ADD_PLUGIN_DIRECTORY(shp)
 ADD_PLUGIN_DIRECTORY(txf)
@@ -221,10 +207,6 @@ IF(OSG_CPP_EXCEPTIONS_AVAILABLE)
     ADD_PLUGIN_DIRECTORY(lwo)
     ADD_PLUGIN_DIRECTORY(ply)
     ADD_PLUGIN_DIRECTORY(txp)
-ENDIF()
-
-IF(XINE_FOUND)
-    ADD_PLUGIN_DIRECTORY(xine)
 ENDIF()
 
 IF(FFMPEG_FOUND AND OSG_CPP_EXCEPTIONS_AVAILABLE)
@@ -268,7 +250,7 @@ IF(FREETYPE_FOUND)
     ADD_PLUGIN_DIRECTORY(freetype)
 ENDIF()
 
-IF(ZLIB_FOUND AND NOT OSG_BUILD_PLATFORM_UWP)
+IF(ZLIB_FOUND)
     ADD_PLUGIN_DIRECTORY(zip)
 ENDIF()
 
@@ -286,10 +268,7 @@ ENDIF()
 
 ADD_PLUGIN_DIRECTORY(pvr)
 
-IF (NOT OSG_BUILD_PLATFORM_UWP)
-    ADD_PLUGIN_DIRECTORY(osc)
-ENDIF()
-
+ADD_PLUGIN_DIRECTORY(osc)
 ADD_PLUGIN_DIRECTORY(trk)
 ADD_PLUGIN_DIRECTORY(tf)
 

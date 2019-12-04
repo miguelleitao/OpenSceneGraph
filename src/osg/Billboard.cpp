@@ -83,7 +83,6 @@ void Billboard::setNormal(const Vec3& normal)
 
 void Billboard::updateCache()
 {
-fprintf(stderr,"billboard Update cache\n");
     if (_mode==AXIAL_ROT)
     {
         if      (_axis==Vec3(1.0f,0.0,0.0f) && _normal==Vec3(0.0f,-1.0,0.0f)) _cachedMode = AXIAL_ROT_X_AXIS;
@@ -155,7 +154,6 @@ bool Billboard::computeMatrix(Matrix& modelview, const Vec3& eye_local, const Ve
 {
     //Vec3 up_local(matrix(0,1),matrix(1,1),matrix(2,1));
 
-fprintf(stderr,"bill board computematrix\n");
     Matrix matrix;
 
     Vec3 ev(eye_local-pos_local);

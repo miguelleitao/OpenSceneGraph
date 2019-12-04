@@ -45,6 +45,10 @@
 
 #include <string.h>
 #include <memory>
+#include <iomanip>
+
+#include <iostream>
+#include <iomanip>
 
 struct STLOptionsStruct {
     bool smooth;
@@ -107,6 +111,11 @@ public:
     virtual const char* className() const
     {
         return "STL Reader";
+    }
+
+    virtual ReadResult readObject(const std::string& fileName, const osgDB::ReaderWriter::Options* options) const
+    {
+        return readNode(fileName, options); 
     }
 
     virtual ReadResult readNode(const std::string& fileName, const osgDB::ReaderWriter::Options*) const;
@@ -293,6 +302,7 @@ private:
             else
                 *m_f << "solid " << node.getName() << std::endl;
 
+            *m_f << std::fixed << std::setprecision(7);
             for (unsigned int i = 0; i < node.getNumDrawables(); ++i)
             {
                 osg::TriangleFunctor<PushPoints> tf;

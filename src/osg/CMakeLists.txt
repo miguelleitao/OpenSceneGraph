@@ -132,7 +132,6 @@ SET(TARGET_H
     ${HEADER_PATH}/PatchParameter
     ${HEADER_PATH}/PagedLOD
     ${HEADER_PATH}/Plane
-    ${HEADER_PATH}/Planode
     ${HEADER_PATH}/Point
     ${HEADER_PATH}/PointSprite
     ${HEADER_PATH}/PolygonMode
@@ -346,7 +345,6 @@ SET(TARGET_SRC
     OperationThread.cpp
     PatchParameter.cpp
     PagedLOD.cpp
-    Planode.cpp
     Point.cpp
     PointSprite.cpp
     PolygonMode.cpp
@@ -461,5 +459,7 @@ SET(TARGET_EXTERNAL_LIBRARIES
 #LINK_CORELIB_DEFAULT(${LIB_NAME} ${CMAKE_THREAD_LIBS_INIT} ${MATH_LIBRARY} ${RT_LIBRARY} )
 
 #INCLUDE(ModuleInstall OPTIONAL)
+
+SET(COMPONENT_PKGCONFIG_DESCRIPTION "3D scenegraph")
 
 SETUP_LIBRARY(${LIB_NAME})

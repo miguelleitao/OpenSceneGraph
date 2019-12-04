@@ -20,6 +20,11 @@ SET(TARGET_SRC
     ../common/Version.cpp
     ../common/Atomic.cpp
 )
+
+IF(CYGWIN)  # define for pthread_{yield,getconcurrency,setconcurrency}
+    ADD_DEFINITIONS(-D_GNU_SOURCE)
+ENDIF()
+
 IF(ANDROID)
       ADD_DEFINITIONS(-D_GNU_SOURCE)
       SET(CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS} -D_GNU_SOURCE")
@@ -120,12 +125,18 @@ ELSE()
         ${TARGET_SRC}
     )
 
+    TARGET_INCLUDE_DIRECTORIES(${LIB_NAME}
+        PUBLIC
+            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${INSTALL_INCDIR}>
+    )
+
     IF(OPENTHREADS_SONAMES)
           SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES VERSION ${OPENTHREADS_VERSION} SOVERSION ${OPENTHREADS_SOVERSION})
     ENDIF()
 
     IF(APPLE)
-        IF(OSG_BUILD_PLATFORM_IPHONE OR OSG_BUILD_PLATFORM_IPHONE_SIMULATOR)
+        IF(OSG_BUILD_PLATFORM_IPHONE)
             SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES XCODE_ATTRIBUTE_ENABLE_BITCODE ${IPHONE_ENABLE_BITCODE})
         ENDIF()
     ENDIF()
@@ -143,18 +154,57 @@ ELSE()
         ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-    INSTALL(
-        TARGETS OpenThreads
-        ARCHIVE DESTINATION lib${LIB_POSTFIX} COMPONENT libopenthreads-dev
-        LIBRARY DESTINATION lib${LIB_POSTFIX} COMPONENT libopenthreads
-        RUNTIME DESTINATION bin COMPONENT libopenthreads
-    )
+    IF(OSG_EXPORT_TARGETS)
+
+        INSTALL(
+            TARGETS ${LIB_NAME}
+            EXPORT  ${LIB_NAME}
+            ARCHIVE DESTINATION ${OSG_INSTALL_LIBDIR} COMPONENT libopenthreads-dev
+            LIBRARY DESTINATION ${OSG_INSTALL_LIBDIR} COMPONENT libopenthreads
+            RUNTIME DESTINATION bin COMPONENT libopenthreads
+        )
+
+        INSTALL(
+            EXPORT ${LIB_NAME}
+            NAMESPACE ${PKG_NAMESPACE}::
+            DESTINATION ${INSTALL_CONFIGDIR}
+            FILE ${LIB_NAME}-targets.cmake
+            COMPONENT libopenthreads-dev
+        )
+
+        # Intentionally blank
+        SET(COMPONENT_CMAKE_DEPENDENCIES)
+
+        SET(TARGET_IMPORT_INPUT_FILE  "${PROJECT_SOURCE_DIR}/packaging/cmake/openscenegraph-component-import-targets.cmake")
+        SET(TARGET_IMPORT_OUTPUT_FILE "${PROJECT_BINARY_DIR}/packaging/cmake/openscenegraph-${LIB_NAME}-import-targets.cmake")
+        CONFIGURE_FILE(
+            ${TARGET_IMPORT_INPUT_FILE}
+            ${TARGET_IMPORT_OUTPUT_FILE}
+            @ONLY
+        )
+        INSTALL(
+            FILES ${TARGET_IMPORT_OUTPUT_FILE}
+            DESTINATION ${INSTALL_CONFIGDIR}
+            COMPONENT libopenscenegraph-dev
+        )
+
+    ELSE()
+
+        INSTALL(
+            TARGETS ${LIB_NAME}
+            ARCHIVE DESTINATION ${OSG_INSTALL_LIBDIR} COMPONENT libopenthreads-dev
+            LIBRARY DESTINATION ${OSG_INSTALL_LIBDIR} COMPONENT libopenthreads
+            RUNTIME DESTINATION bin COMPONENT libopenthreads
+        )
+
+    ENDIF()
 
     IF(NOT OSG_COMPILE_FRAMEWORKS)
-           INSTALL(
-               FILES ${OpenThreads_PUBLIC_HEADERS}
-               DESTINATION include/OpenThreads
-               COMPONENT libopenthreads-dev
+
+        INSTALL(
+            FILES ${OpenThreads_PUBLIC_HEADERS}
+            DESTINATION ${INSTALL_INCDIR}/OpenThreads
+            COMPONENT libopenthreads-dev
         )
 
     ELSE()

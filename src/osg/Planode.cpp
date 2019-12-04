@@ -30,7 +30,7 @@ Planode(Plane pl) : Plane(pl)
 */
 Planode::Planode() : Plane(0.,0.,1.,0)
 {
-fprintf(stderr,"init planode\n");
+    fprintf(stderr,"init planode\n");
 
     osg::Shape *sp = new osg::Box( osg::Vec3(0.,0.,0.), 1., 1., 1. );
     if ( sp ) {
@@ -137,18 +137,23 @@ void Planode::traverse(NodeVisitor& nv) {
 fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceFromEyePoint(osg::Vec3(0,0,0),true), nv.getDistanceToViewPoint(osg::Vec3(0,0,0),true));
 */
 
-        float dist = nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true);
+    float dist = nv.getDistanceToEyePoint(osg::Vec3(0,0,0),true);
 
 	osgUtil::CullVisitor *cv = nv.asCullVisitor();
 
-	//osg::Matrixd proj = nv.asCullVisitor()->getCurrentCamera()->getProjectionMatrix();
+	osg::Matrixd proj = nv.asCullVisitor()->getCurrentCamera()->getProjectionMatrix();
 
 	//osg::Matrixd mv   = nv.getCurrentCamera()->getViewMatrix();
+    
+    //nv.getEyePoint
+    //nv.getDistanceToEyePoint
 
-	osg::Matrixd temp = proj * mv;
-	osg::Matrixd inv = inverse(temp); // compute inverse of matrix
+	//osg::Matrixd temp = proj * mv;
+    
+	osg::Matrixd inv;
+    inv.invert_4x4(proj); // compute inverse of matrix
 	 
-	VECTOR4 fr[8]= {
+	const osg::Vec4 fr[8]= {
 		// near
 		{-1, -1, -1, 1}, { 1, -1, -1, 1}, { 1,  1, -1, 1},  {-1,  1, -1, 1},
 		// far
@@ -163,17 +168,17 @@ fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,
 	int i;
 	for (i=0; i<8; i++)
 	{
-	    tfr = inv * fr;
-	    tfr[i].x /= tfr[i].w;
-	    tfr[i].y /= tfr[i].w;
-	    tfr[i].z /= tfr[i].w;
-	    tfr[i].w = 1.0f;
-}
-        osgUtil::CullVisitor *cv = nv.asCullVisitor();
+	    tfr[i] = inv * fr[i];
+	    tfr[i][0] /= tfr[i][3];
+	    tfr[i][1] /= tfr[i][3];
+	    tfr[i][2] /= tfr[i][3];
+	    tfr[i][3] = 1.0f;
+    }
+    //    osgUtil::CullVisitor *cv = nv.asCullVisitor();
 	if ( cv ) {
 	    osg::Camera* cam = cv->getCurrentCamera();
 	    if (cam) {
-		fprintf(stderr," ######## obteve camaere\n");
+		fprintf(stderr," ######## obteve camera\n");
 		osg::Vec3d c_eye, c_center, c_up;
 		cam->getViewMatrixAsLookAt (c_eye, c_center, c_up, 1.0);
     		fprintf(stderr, "         camera with eye %.2f %.2f %.2f view %.2f %.2f %.2f\n",
@@ -207,7 +212,7 @@ fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,
 		// 4 rays
 		osg::Vec3d frustRay[4];
 		double kk = dotProductNormal( c_eye );
-		for( int i=0 ; i<4 ;i++ ) {
+		for( i=0 ; i<4 ;i++ ) {
 		    frustRay[i] = osg::Matrix::transform3x3( vdir, matVertex[i] );
 		    double rr = dotProductNormal( frustRay[i] );
 		    if ( abs(rr)>0.0000001 ) {
@@ -250,14 +255,14 @@ fprintf(stderr,"Dists %.2f %.2f %.2f\n", nv.getDistanceToEyePoint(osg::Vec3(0,0,
     planodeVerts->dirty();
 
     for( unsigned int i=0 ; i<_children.size() ; i++ ) {
-	getDrawable(i)->dirtyDisplayList();
-	getDrawable(i)->dirtyBound();
+        getDrawable(i)->dirtyDisplayList();
+        getDrawable(i)->dirtyBound();
     }
     
     dirtyBound();
-computeBound();
+    computeBound();
 
-fprintf(stderr,"end\n");
+    fprintf(stderr,"end\n");
 
 
     //getParent(0)->dirtyBound();

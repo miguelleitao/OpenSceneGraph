@@ -17,7 +17,6 @@
 
 #ifndef TCHAR
 typedef char TCHAR;
-#define _TCHAR_DEFINED
 #endif
 
 
@@ -245,11 +244,7 @@ std::string osgDB::getCurrentWorkingDirectory( void )
     #define MAX_PATH 1024
 #endif
     TCHAR rootdir[MAX_PATH];
-#if !defined(WIN32_UWP)
     if(getcwd(rootdir,MAX_PATH-1))
-#else
-    if(_getcwd(rootdir, MAX_PATH-1))
-#endif
     {
         return(rootdir);
     }
@@ -346,6 +341,11 @@ std::string osgDB::findFileInPath(const std::string& filename, const FilePathLis
     {
         OSG_DEBUG << "itr='" <<*itr<< "'\n";
         std::string path = itr->empty() ? filename : concatPaths(*itr, filename);
+
+#ifdef WIN32
+        // if combined file path exceeds MAX_PATH then ignore as it's not a legal path otherwise subsequent IO calls with this path may result in undefined behavior
+        if (path.length()>MAX_PATH) continue;
+#endif
 
         path = getRealPath(path);
 
@@ -543,7 +543,6 @@ static void appendInstallationLibraryFilePaths(osgDB::FilePathList& filepath)
     {
         osgDB::DirectoryContents contents;
 
-#if !defined(WIN32_UWP)
         OSGDB_WINDOWS_FUNCT(WIN32_FIND_DATA) data;
         HANDLE handle = OSGDB_WINDOWS_FUNCT(FindFirstFile)((OSGDB_STRING_TO_FILENAME(dirName) + OSGDB_FILENAME_TEXT("\\*")).c_str(), &data);
         if (handle != INVALID_HANDLE_VALUE)
@@ -556,20 +555,6 @@ static void appendInstallationLibraryFilePaths(osgDB::FilePathList& filepath)
 
             FindClose(handle);
         }
-#else
-        WIN32_FIND_DATA data;
-
-        HANDLE handle = FindFirstFileEx((osgDB::convertUTF8toUTF16(dirName) + L"\\*").c_str(), FindExInfoStandard, &data, FindExSearchNameMatch, NULL, 0);
-        if (handle != INVALID_HANDLE_VALUE)
-        {
-            do
-            {
-                contents.push_back(osgDB::convertUTF16toUTF8(data.cFileName));
-            } while (FindNextFile(handle, &data) != 0);
-
-            FindClose(handle);
-        }
-#endif
         return contents;
     }
 
@@ -792,7 +777,7 @@ bool osgDB::containsCurrentWorkingDirectoryReference(const FilePathList& paths)
         // will search as if it was enabled.
 
         // So if SafeDllSearchMode is enabled, the search order is as follows:
-#if !defined(WIN32_UWP)
+
         //   1. The directory from which the application loaded.
         DWORD retval = 0;
         const DWORD size = MAX_PATH;
@@ -814,7 +799,7 @@ bool osgDB::containsCurrentWorkingDirectoryReference(const FilePathList& paths)
         //   2. The directory that the dll that contains this function is in.
         // For static builds, this will be the executable directory.
 
-        #if defined(_MSC_VER) && !defined(WIN32_UWP)
+        #if defined(_MSC_VER)
             // Requires use of the GetModuleHandleEx() function which is available only on Windows XP or higher.
             // In order to allow execution on older versions, we load the function dynamically from the library and
             // use it only if it's available.
@@ -911,7 +896,6 @@ bool osgDB::containsCurrentWorkingDirectoryReference(const FilePathList& paths)
         }
 
         appendInstallationLibraryFilePaths(filepath);
-#endif
     }
 
 #elif defined(__APPLE__)

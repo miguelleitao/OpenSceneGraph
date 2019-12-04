@@ -19,29 +19,7 @@
 #include <osgDB/FileUtils>
 
 #ifdef WIN32
-
-#if !defined(__MINGW32__)
-#if !defined(WIN32_UWP)
-    #define _WIN32_WINNT 0x0500
-#else
-    #define _WIN32_WINNT 0x0602
-#endif
-#endif
-
-#include <windows.h>
-
-#if defined(WIN32_UWP)
-    DWORD GetShortPathNameW(
-        _In_  LPCTSTR lpszLongPath,
-        _Out_ LPTSTR  lpszShortPath,
-        _In_  DWORD   cchBuffer
-    )
-    {
-        wcscpy(lpszShortPath, lpszLongPath);
-        return wcslen(lpszLongPath);
-    }
-#endif
-
+    #include <windows.h>
 #endif
 
 #if defined(__sgi)
